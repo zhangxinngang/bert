@@ -203,6 +203,54 @@ class DataProcessor(object):
         lines.append(line)
       return lines
 
+class MyChnProcessor(DataProcessor):
+    """weibao 数据情感 倾向的 NLP Bert 处理器类"""
+    """Base class for data converters for sequence classification data sets."""
+
+    def get_train_examples(self, data_dir):
+        """Gets a collection of `InputExample`s for the train set."""
+        lines = self._read_tsv(
+            os.path.join(data_dir, "weibo_senti_10k.csv"))
+
+        examples = []
+        lines = lines[0:10039]
+        for (i, line) in enumerate(lines):
+            if i == 0:
+                continue
+            guid = "train-%d" % (i)
+            strs = line[0].split(",")
+            text_a = tokenization.convert_to_unicode(strs[1])
+            label = tokenization.convert_to_unicode(strs[0])
+            examples.append(
+                InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
+        return examples
+
+    def get_dev_examples(self, data_dir):
+        """Gets a collection of `InputExample`s for the dev set."""
+        raise NotImplementedError()
+
+    def get_test_examples(self, data_dir):
+        """Gets a collection of `InputExample`s for prediction."""
+        lines = self._read_tsv(
+            os.path.join(data_dir, "weibo_senti_10k.csv"))
+
+        examples = []
+        lines = lines[10040:10230]
+        for (i, line) in enumerate(lines):
+            if i == 0:
+                continue
+            guid = "test-%d" % (i)
+            strs = line[0].split(",")
+            text_a = tokenization.convert_to_unicode(strs[1])
+            label = "0"
+            examples.append(
+                InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
+        return examples
+
+    def get_labels(self):
+        """Gets the list of labels for this data set."""
+        return ["0","1"]
+
 
 class XnliProcessor(DataProcessor):
   """Processor for the XNLI data set."""
@@ -331,7 +379,6 @@ class MrpcProcessor(DataProcessor):
       examples.append(
           InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
     return examples
-
 
 class ColaProcessor(DataProcessor):
   """Processor for the CoLA data set (GLUE version)."""
@@ -788,6 +835,7 @@ def main(_):
       "mnli": MnliProcessor,
       "mrpc": MrpcProcessor,
       "xnli": XnliProcessor,
+      "mychn":MyChnProcessor,
   }
 
   tokenization.validate_case_matches_checkpoint(FLAGS.do_lower_case,
